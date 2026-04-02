@@ -3,11 +3,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("refresh-submissions").addEventListener("click", loadSubmissions);
 });
 
+const DOCUMENT_TYPE_LABELS = {
+  resident_id: "주민등록증",
+  alien_registration: "외국인등록증",
+  passport: "여권",
+};
+
 async function loadSecurity() {
   const response = await fetch("/api/security");
   const security = await response.json();
   const panel = document.getElementById("admin-security");
   panel.innerHTML = "";
+
   [
     ["전송 구간", security.transport_encryption],
     ["저장 암호화", security.at_rest_encryption],
@@ -38,7 +45,9 @@ function renderMetrics(submissions) {
   const readyCount = submissions.filter((item) => item.capture_status === "ready").length;
   const reviewCount = submissions.filter((item) => item.capture_status === "review_recommended").length;
   const retryCount = submissions.filter((item) => item.capture_status === "retry_required").length;
+
   metrics.innerHTML = "";
+
   [
     ["누적 제출", submissions.length],
     ["제출 가능", readyCount],
@@ -71,21 +80,21 @@ function renderSubmissionList(submissions) {
       <div class="submission-topline">
         <div>
           <div class="submission-title">${submission.original_filename}</div>
-          <div class="submission-meta">${formatDate(submission.created_at)} · ${submission.document_type}</div>
+          <div class="submission-meta">${formatDate(submission.created_at)} · ${formatDocumentType(submission.document_type)}</div>
         </div>
         <span class="${chipClass(submission.capture_status)}">${submission.capture_status_label}</span>
       </div>
       <div class="submission-metrics">
-        <span class="metric-pill">Glare ${(submission.glare_ratio * 100).toFixed(1)}%</span>
-        <span class="metric-pill">Blur ${submission.blur_score.toFixed(1)}</span>
-        <span class="metric-pill">Fill ${(submission.frame_fill_ratio * 100).toFixed(1)}%</span>
-        <span class="metric-pill">Tilt ${submission.tilt_angle == null ? "-" : `${submission.tilt_angle}°`}</span>
-        <span class="metric-pill">Codes ${submission.admin_codes.join(", ") || "NONE"}</span>
+        <span class="metric-pill">빛반사 ${(submission.glare_ratio * 100).toFixed(1)}%</span>
+        <span class="metric-pill">선명도 ${submission.blur_score.toFixed(1)}</span>
+        <span class="metric-pill">프레임 점유 ${(submission.frame_fill_ratio * 100).toFixed(1)}%</span>
+        <span class="metric-pill">기울기 ${submission.tilt_angle == null ? "-" : `${submission.tilt_angle}도`}</span>
+        <span class="metric-pill">점검 코드 ${formatAdminCodes(submission.admin_codes)}</span>
       </div>
       <p class="lead compact">${submission.capture_summary}</p>
       <div class="submission-actions">
         <a class="button button-secondary" href="/api/submissions/${submission.id}/download?variant=original">원본 다운로드</a>
-        <a class="button button-secondary" href="/api/submissions/${submission.id}/download?variant=glare">글레어 단계</a>
+        <a class="button button-secondary" href="/api/submissions/${submission.id}/download?variant=glare">반사광 단계</a>
         <a class="button button-secondary" href="/api/submissions/${submission.id}/download?variant=detect">크롭 단계</a>
         <a class="button button-primary" href="/api/submissions/${submission.id}/download?variant=final">최종본 다운로드</a>
       </div>
@@ -115,4 +124,16 @@ function formatDate(value) {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+function formatDocumentType(value) {
+  return DOCUMENT_TYPE_LABELS[value] ?? value;
+}
+
+function formatAdminCodes(codes) {
+  if (!codes?.length) {
+    return "이상 없음";
+  }
+
+  return codes.join(", ");
 }

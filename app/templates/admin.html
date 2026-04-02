@@ -3,26 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ID Scan Admin Console</title>
+    <title>ID Scan 관리자 콘솔</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body class="app-shell admin-shell">
     <div class="ambient ambient-left"></div>
     <div class="ambient ambient-right"></div>
-    <main class="admin-page">
-      <section class="hero-panel">
-        <p class="eyebrow">Operations Console</p>
-        <h1>촬영 결과를 검토하고, 품질 이슈와 저장 정책을 한 번에 확인합니다.</h1>
-        <p class="lead">
-          제출된 신분증 이미지를 운영자가 검토하는 최소 관리자 흐름입니다. 품질 상태, 다운로드,
-          보안 정책, 공지사항을 같이 보여줍니다.
-        </p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="/">촬영 화면으로 이동</a>
-          <a class="button button-secondary" href="{{ streamlit_url }}" target="_blank" rel="noreferrer">
-            실험용 Streamlit 데모
-          </a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-lockup">
+          <p class="eyebrow">Operations Console</p>
+          <strong>ID Scan Admin</strong>
         </div>
+        <nav class="topbar-actions" aria-label="주요 이동">
+          <a class="button button-secondary button-quiet" href="/">촬영 화면</a>
+          <a class="button button-secondary button-quiet" href="{{ streamlit_url }}" target="_blank" rel="noreferrer">
+            Streamlit
+          </a>
+        </nav>
+      </div>
+    </header>
+    <main class="admin-page">
+      <section class="hero-panel hero-panel-compact">
+        <p class="section-label">운영 보드</p>
+        <h1>제출 상태와 품질 이슈를 빠르게 검토하는 운영 화면</h1>
+        <p class="lead">
+          접수 상태, 품질 이슈, 다운로드 경로를 한 흐름 안에서 확인할 수 있도록 단순하고 밀도 있게 정리했습니다.
+        </p>
       </section>
 
       <section class="admin-dashboard">
@@ -33,7 +40,7 @@
             <div id="admin-security" class="security-panel"></div>
           </article>
           <article class="feedback-card">
-            <p class="section-label">공지사항</p>
+            <p class="section-label">공지 사항</p>
             <div id="admin-notice" class="notice-panel"></div>
           </article>
         </div>
@@ -42,7 +49,7 @@
       <section class="submission-board">
         <div class="board-header">
           <div>
-            <p class="section-label">Submission Queue</p>
+            <p class="section-label">제출 현황</p>
             <h2>최근 전송 목록</h2>
           </div>
           <button id="refresh-submissions" class="button button-secondary">새로고침</button>

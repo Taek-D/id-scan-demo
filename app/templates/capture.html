@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>ID Scan Capture Service</title>
+    <title>ID Scan 촬영 서비스</title>
     <meta
       name="description"
-      content="신분증 촬영 가이드, 품질 판정, 이미지 보정, 관리자 전달 흐름을 한 화면에서 보여주는 서비스형 데모입니다."
+      content="신분증 촬영 가이드, 품질 판정, 이미지 보정, 관리자 전달 흐름을 한 화면에서 확인하는 신분증 접수 데모입니다."
     />
     <meta name="theme-color" content="#c4894a" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -21,35 +21,46 @@
   <body class="app-shell">
     <div class="ambient ambient-left"></div>
     <div class="ambient ambient-right"></div>
-    <main class="capture-page">
-      <section class="hero-panel">
-        <div class="hero-copy">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand-lockup">
           <p class="eyebrow">Telecom ID Intake Demo</p>
-          <h1>신분증 촬영부터 품질 판정, 제출 준비까지 한 화면에서 확인합니다.</h1>
+          <strong>ID Scan Service</strong>
+        </div>
+        <nav class="topbar-actions" aria-label="주요 이동">
+          <a class="button button-secondary button-quiet" href="/admin">관리자 콘솔</a>
+          <a class="button button-secondary button-quiet" href="{{ streamlit_url }}" target="_blank" rel="noreferrer">
+            Streamlit
+          </a>
+        </nav>
+      </div>
+    </header>
+    <main class="capture-page">
+      <section class="hero-panel hero-panel-compact">
+        <div class="hero-copy">
+          <p class="section-label">촬영 화면</p>
+          <h1>신분증 촬영과 판정을 한 화면에서 끝냅니다</h1>
           <p class="lead">
-            모바일 웹 촬영 흐름, 품질 판정, 서버 보정, 관리자 검토 흐름을 함께 보여주는
-            수주형 데모 화면입니다.
+            프레임 정렬, 재촬영 판단, 보정 결과, 관리자 전달 흐름까지 한 번에 확인할 수 있도록 간결하게 정리한 접수
+            화면입니다.
           </p>
         </div>
         <div class="hero-actions">
           <button id="start-camera" class="button button-primary">카메라 시작</button>
           <button id="install-app" class="button button-secondary" hidden>홈 화면에 추가</button>
-          <a class="button button-secondary" href="/admin">관리자 콘솔 보기</a>
-          <a class="button button-tertiary" href="{{ streamlit_url }}" target="_blank" rel="noreferrer">
-            기존 실험용 Streamlit 데모
-          </a>
+          <a class="button button-tertiary" href="/admin">운영 결과 보기</a>
         </div>
         <p id="install-hint" class="pwa-hint">
-          브라우저에서 설치 가능 상태가 되면 홈 화면에 추가 버튼이 활성화됩니다.
+          브라우저가 설치 가능한 상태가 되면 홈 화면 추가 버튼이 자동으로 활성화됩니다.
         </p>
       </section>
 
       <section class="workspace">
-        <article class="capture-card">
+        <article class="capture-card capture-stage">
           <header class="card-header">
             <div>
-              <p class="section-label">Capture Workspace</p>
-              <h2>모바일 촬영 가이드</h2>
+              <p class="section-label">촬영 워크스페이스</p>
+              <h2>실시간 촬영 스테이지</h2>
             </div>
             <span id="camera-state" class="chip chip-neutral">카메라 대기</span>
           </header>
@@ -61,7 +72,7 @@
             </label>
             <div class="field field-readonly">
               <span>자동 보정 모드</span>
-              <small>원본 훼손을 줄이기 위한 보수적 글레어 감지 기본값을 사용합니다.</small>
+              <small>원본 훼손을 줄이기 위해 보수적인 반사광 검출 기본값을 사용합니다.</small>
             </div>
           </div>
 
@@ -70,28 +81,28 @@
               <span class="step-index">1</span>
               <div class="step-body">
                 <strong>문서 선택</strong>
-                <span>종류에 맞는 프레임과 팁을 불러옵니다.</span>
+                <span>종류에 맞는 프레임과 안내 문구를 불러옵니다.</span>
               </div>
             </li>
             <li class="step-item" data-step="camera">
               <span class="step-index">2</span>
               <div class="step-body">
                 <strong>카메라 준비</strong>
-                <span>권한을 허용하고 후면 카메라를 활성화합니다.</span>
+                <span>권한을 허용하고 후면 카메라를 연결합니다.</span>
               </div>
             </li>
             <li class="step-item" data-step="align">
               <span class="step-index">3</span>
               <div class="step-body">
                 <strong>프레임 정렬</strong>
-                <span>가로 방향과 카드 위치를 확인합니다.</span>
+                <span>가로 방향과 카드 위치를 확인한 뒤 촬영합니다.</span>
               </div>
             </li>
             <li class="step-item" data-step="submit">
               <span class="step-index">4</span>
               <div class="step-body">
-                <strong>제출 준비</strong>
-                <span>촬영 후 품질 판정과 보정 결과를 확인합니다.</span>
+                <strong>결과 확인</strong>
+                <span>품질 판정과 보정 결과를 검토한 뒤 제출합니다.</span>
               </div>
             </li>
           </ol>
@@ -103,11 +114,11 @@
             </article>
             <article class="status-card">
               <span class="status-kicker">권한 상태</span>
-              <strong id="status-permission">카메라 권한을 아직 확인하지 않았습니다.</strong>
+              <strong id="status-permission">카메라 권한은 아직 확인되지 않았습니다.</strong>
             </article>
             <article class="status-card">
               <span class="status-kicker">프레임 정렬</span>
-              <strong id="status-frame">가로 방향으로 돌리면 정렬이 쉬워집니다.</strong>
+              <strong id="status-frame">가로 방향으로 돌리면 프레임 정렬이 더 쉬워집니다.</strong>
             </article>
             <article class="status-card">
               <span class="status-kicker">제출 준비</span>
@@ -125,8 +136,8 @@
                 </div>
               </div>
               <div class="camera-instructions">
-                <span id="orientation-hint">가로 방향으로 맞추면 프레임 정렬이 쉬워집니다.</span>
-                <span id="alignment-hint">빛이 강하면 각도를 조금만 틀어 반사를 줄여 주세요.</span>
+                <span id="orientation-hint">가로 방향으로 맞추면 프레임 정렬이 더 쉬워집니다.</span>
+                <span id="alignment-hint">빛이 강하면 각도를 조금 조정해 반사광을 줄여 주세요.</span>
               </div>
             </div>
 
@@ -143,28 +154,28 @@
           </div>
         </article>
 
-        <aside class="briefing-card">
+        <aside class="briefing-card support-rail">
           <section class="briefing-section">
-            <p class="section-label">Capture Tips</p>
+            <p class="section-label">촬영 팁</p>
             <h3 id="tips-title">주민등록증 촬영 가이드</h3>
             <ul id="capture-tips" class="tip-list"></ul>
           </section>
 
           <section class="briefing-section">
-            <p class="section-label">Readiness</p>
+            <p class="section-label">진행 상태</p>
             <p id="readiness-copy" class="lead compact">
-              카메라를 시작하면 촬영 단계가 자동으로 갱신되고, 제출 후에는 재촬영 또는 제출 가능 여부를
-              바로 확인할 수 있습니다.
+              카메라를 시작하면 촬영 단계가 자동으로 갱신되고, 제출 전에는 재촬영 여부와 제출 가능 상태를 바로
+              확인할 수 있습니다.
             </p>
           </section>
 
           <section class="briefing-section">
-            <p class="section-label">Security Posture</p>
+            <p class="section-label">보안 정책</p>
             <div id="security-panel" class="security-panel"></div>
           </section>
 
           <section class="briefing-section">
-            <p class="section-label">Operations Notice</p>
+            <p class="section-label">운영 공지</p>
             <div id="notice-panel" class="notice-panel"></div>
           </section>
         </aside>
@@ -172,7 +183,7 @@
 
       <section id="result-section" class="result-section hidden">
         <article id="decision-banner" class="decision-banner status-ready">
-          <p class="section-label">Submission Decision</p>
+          <p class="section-label">판정 결과</p>
           <h2 id="quality-title">제출 가능</h2>
           <p id="quality-summary" class="lead compact"></p>
         </article>
@@ -197,20 +208,20 @@
             </article>
           </div>
           <article class="feedback-card">
-            <p class="section-label">Retake Guidance</p>
+            <p class="section-label">재촬영 가이드</p>
             <ul id="quality-messages" class="tip-list dense"></ul>
           </article>
         </div>
 
         <div class="feedback-layout">
           <article class="feedback-card">
-            <p class="section-label">Submission Routing</p>
+            <p class="section-label">전달 정보</p>
             <div id="submission-meta" class="meta-list"></div>
           </article>
           <article class="feedback-card">
-            <p class="section-label">Next Action</p>
+            <p class="section-label">다음 단계</p>
             <p id="result-next-action" class="lead compact">
-              품질 상태를 검토한 뒤 관리자 콘솔에서 저장 결과를 확인할 수 있습니다.
+              품질 상태를 검토한 뒤 관리자 콘솔에서 저장 이력과 최종 결과를 확인할 수 있습니다.
             </p>
             <div class="hero-actions compact-actions">
               <a class="button button-secondary" href="/admin">관리자 콘솔로 이동</a>
@@ -225,7 +236,7 @@
           </article>
           <article class="result-card">
             <span id="image-glare-label">빛반사 보정</span>
-            <img id="image-glare" alt="빛반사 제거 결과" />
+            <img id="image-glare" alt="빛반사 보정 결과" />
           </article>
           <article class="result-card">
             <span>신분증 크롭</span>
