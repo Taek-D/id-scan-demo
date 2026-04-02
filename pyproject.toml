@@ -1,0 +1,34 @@
+[project]
+name = "id-scan-demo"
+version = "0.1.0"
+description = "Python OpenCV-based ID card image processing demo with FastAPI and Streamlit"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.135.3",
+    "numpy>=2.4.4",
+    "opencv-python>=4.13.0.92",
+    "pillow>=12.2.0",
+    "python-multipart>=0.0.22",
+    "requests>=2.33.1",
+    "streamlit>=1.56.0",
+    "uvicorn[standard]>=0.42.0",
+]
+
+[project.scripts]
+id-scan-demo = "id_scan_demo:main"
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.15.8",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
