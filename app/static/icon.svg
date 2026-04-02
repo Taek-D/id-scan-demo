@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="ID Scan Demo">
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#dfb170" />
+      <stop offset="100%" stop-color="#9f6535" />
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)" />
+  <rect x="42" y="62" width="172" height="132" rx="22" fill="#fffaf3" opacity="0.96" />
+  <rect x="58" y="78" width="140" height="100" rx="16" fill="none" stroke="#2f4858" stroke-width="10" />
+  <circle cx="184" cy="102" r="18" fill="#c4894a" opacity="0.82" />
+  <path d="M78 150h54" stroke="#2f4858" stroke-linecap="round" stroke-width="12" />
+  <path d="M78 128h72" stroke="#2f4858" stroke-linecap="round" stroke-width="12" />
+  <path d="M144 180l28-28" stroke="#2f4858" stroke-linecap="round" stroke-width="12" />
+  <circle cx="178" cy="186" r="24" fill="none" stroke="#2f4858" stroke-width="12" />
+</svg>

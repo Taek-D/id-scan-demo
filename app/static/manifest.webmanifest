@@ -1,0 +1,18 @@
+{
+  "name": "ID Scan Demo",
+  "short_name": "ID Scan",
+  "description": "신분증 촬영 가이드와 품질 판정, 이미지 보정, 관리자 확인 흐름을 보여주는 데모",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f0e6",
+  "theme_color": "#c4894a",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

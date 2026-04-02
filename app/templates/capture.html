@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>ID Scan Capture Service</title>
+    <meta
+      name="description"
+      content="신분증 촬영 가이드, 품질 판정, 이미지 보정, 관리자 전달 흐름을 한 화면에서 보여주는 서비스형 데모입니다."
+    />
+    <meta name="theme-color" content="#c4894a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ID Scan Demo" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/static/icon.svg" />
+    <link rel="apple-touch-icon" href="/static/icon.svg" />
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body class="app-shell">
+    <div class="ambient ambient-left"></div>
+    <div class="ambient ambient-right"></div>
+    <main class="capture-page">
+      <section class="hero-panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Telecom ID Intake Demo</p>
+          <h1>신분증 촬영부터 품질 판정, 제출 준비까지 한 화면에서 확인합니다.</h1>
+          <p class="lead">
+            모바일 웹 촬영 흐름, 품질 판정, 서버 보정, 관리자 검토 흐름을 함께 보여주는
+            수주형 데모 화면입니다.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button id="start-camera" class="button button-primary">카메라 시작</button>
+          <button id="install-app" class="button button-secondary" hidden>홈 화면에 추가</button>
+          <a class="button button-secondary" href="/admin">관리자 콘솔 보기</a>
+          <a class="button button-tertiary" href="{{ streamlit_url }}" target="_blank" rel="noreferrer">
+            기존 실험용 Streamlit 데모
+          </a>
+        </div>
+        <p id="install-hint" class="pwa-hint">
+          브라우저에서 설치 가능 상태가 되면 홈 화면에 추가 버튼이 활성화됩니다.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <article class="capture-card">
+          <header class="card-header">
+            <div>
+              <p class="section-label">Capture Workspace</p>
+              <h2>모바일 촬영 가이드</h2>
+            </div>
+            <span id="camera-state" class="chip chip-neutral">카메라 대기</span>
+          </header>
+
+          <div class="controls-grid">
+            <label class="field">
+              <span>신분증 종류</span>
+              <select id="document-type"></select>
+            </label>
+            <label class="field">
+              <span>글레어 감지 강도</span>
+              <input id="glare-threshold" type="range" min="100" max="254" value="200" />
+              <small id="glare-threshold-value">200</small>
+            </label>
+          </div>
+
+          <ol id="capture-steps" class="capture-steps" aria-label="촬영 단계 안내">
+            <li class="step-item is-current" data-step="document">
+              <span class="step-index">1</span>
+              <div class="step-body">
+                <strong>문서 선택</strong>
+                <span>종류에 맞는 프레임과 팁을 불러옵니다.</span>
+              </div>
+            </li>
+            <li class="step-item" data-step="camera">
+              <span class="step-index">2</span>
+              <div class="step-body">
+                <strong>카메라 준비</strong>
+                <span>권한을 허용하고 후면 카메라를 활성화합니다.</span>
+              </div>
+            </li>
+            <li class="step-item" data-step="align">
+              <span class="step-index">3</span>
+              <div class="step-body">
+                <strong>프레임 정렬</strong>
+                <span>가로 방향과 카드 위치를 확인합니다.</span>
+              </div>
+            </li>
+            <li class="step-item" data-step="submit">
+              <span class="step-index">4</span>
+              <div class="step-body">
+                <strong>제출 준비</strong>
+                <span>촬영 후 품질 판정과 보정 결과를 확인합니다.</span>
+              </div>
+            </li>
+          </ol>
+
+          <div class="status-grid" aria-label="촬영 준비 상태">
+            <article class="status-card">
+              <span class="status-kicker">입력 소스</span>
+              <strong id="status-source">카메라 또는 파일 업로드를 선택해 주세요.</strong>
+            </article>
+            <article class="status-card">
+              <span class="status-kicker">권한 상태</span>
+              <strong id="status-permission">카메라 권한을 아직 확인하지 않았습니다.</strong>
+            </article>
+            <article class="status-card">
+              <span class="status-kicker">프레임 정렬</span>
+              <strong id="status-frame">가로 방향으로 돌리면 정렬이 쉬워집니다.</strong>
+            </article>
+            <article class="status-card">
+              <span class="status-kicker">제출 준비</span>
+              <strong id="status-submit">촬영 전 단계입니다.</strong>
+            </article>
+          </div>
+
+          <div class="preview-stack">
+            <div class="preview-frame">
+              <video id="camera-preview" autoplay playsinline muted></video>
+              <img id="file-preview" class="file-preview hidden" alt="업로드 미리보기" />
+              <div id="capture-overlay" class="capture-overlay">
+                <div class="overlay-frame">
+                  <p id="overlay-label" class="overlay-label">주민등록증 프레임</p>
+                </div>
+              </div>
+              <div class="camera-instructions">
+                <span id="orientation-hint">가로 방향으로 맞추면 프레임 정렬이 쉬워집니다.</span>
+                <span id="alignment-hint">빛이 강하면 각도를 조금만 틀어 반사를 줄여 주세요.</span>
+              </div>
+            </div>
+
+            <canvas id="capture-canvas" class="hidden"></canvas>
+
+            <div class="action-row sticky-mobile">
+              <button id="capture-button" class="button button-primary">현재 화면 촬영</button>
+              <button id="retake-button" class="button button-secondary" type="button">재촬영 준비</button>
+              <label class="button button-secondary upload-button">
+                파일 업로드
+                <input id="file-input" type="file" accept="image/png,image/jpeg" hidden />
+              </label>
+            </div>
+          </div>
+        </article>
+
+        <aside class="briefing-card">
+          <section class="briefing-section">
+            <p class="section-label">Capture Tips</p>
+            <h3 id="tips-title">주민등록증 촬영 가이드</h3>
+            <ul id="capture-tips" class="tip-list"></ul>
+          </section>
+
+          <section class="briefing-section">
+            <p class="section-label">Readiness</p>
+            <p id="readiness-copy" class="lead compact">
+              카메라를 시작하면 촬영 단계가 자동으로 갱신되고, 제출 후에는 재촬영 또는 제출 가능 여부를
+              바로 확인할 수 있습니다.
+            </p>
+          </section>
+
+          <section class="briefing-section">
+            <p class="section-label">Security Posture</p>
+            <div id="security-panel" class="security-panel"></div>
+          </section>
+
+          <section class="briefing-section">
+            <p class="section-label">Operations Notice</p>
+            <div id="notice-panel" class="notice-panel"></div>
+          </section>
+        </aside>
+      </section>
+
+      <section id="result-section" class="result-section hidden">
+        <article id="decision-banner" class="decision-banner status-ready">
+          <p class="section-label">Submission Decision</p>
+          <h2 id="quality-title">제출 가능</h2>
+          <p id="quality-summary" class="lead compact"></p>
+        </article>
+
+        <div class="result-summary">
+          <div class="metric-grid">
+            <article class="metric-card">
+              <span>품질 상태</span>
+              <strong id="quality-status-label">-</strong>
+            </article>
+            <article class="metric-card">
+              <span>빛반사 비율</span>
+              <strong id="quality-glare">-</strong>
+            </article>
+            <article class="metric-card">
+              <span>선명도 점수</span>
+              <strong id="quality-blur">-</strong>
+            </article>
+            <article class="metric-card">
+              <span>기울기</span>
+              <strong id="quality-tilt">-</strong>
+            </article>
+          </div>
+          <article class="feedback-card">
+            <p class="section-label">Retake Guidance</p>
+            <ul id="quality-messages" class="tip-list dense"></ul>
+          </article>
+        </div>
+
+        <div class="feedback-layout">
+          <article class="feedback-card">
+            <p class="section-label">Submission Routing</p>
+            <div id="submission-meta" class="meta-list"></div>
+          </article>
+          <article class="feedback-card">
+            <p class="section-label">Next Action</p>
+            <p id="result-next-action" class="lead compact">
+              품질 상태를 검토한 뒤 관리자 콘솔에서 저장 결과를 확인할 수 있습니다.
+            </p>
+            <div class="hero-actions compact-actions">
+              <a class="button button-secondary" href="/admin">관리자 콘솔로 이동</a>
+            </div>
+          </article>
+        </div>
+
+        <div class="result-grid">
+          <article class="result-card">
+            <span>원본</span>
+            <img id="image-original" alt="원본 이미지" />
+          </article>
+          <article class="result-card">
+            <span>빛반사 제거</span>
+            <img id="image-glare" alt="빛반사 제거 결과" />
+          </article>
+          <article class="result-card">
+            <span>신분증 크롭</span>
+            <img id="image-detect" alt="신분증 크롭 결과" />
+          </article>
+          <article class="result-card">
+            <span>최종 보정</span>
+            <img id="image-final" alt="최종 보정 결과" />
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      window.ID_SCAN_CONFIG = {
+        streamlitUrl: "{{ streamlit_url }}"
+      };
+    </script>
+    <script src="/static/capture.js" defer></script>
+  </body>
+</html>

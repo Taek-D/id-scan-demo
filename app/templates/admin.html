@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ID Scan Admin Console</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body class="app-shell admin-shell">
+    <div class="ambient ambient-left"></div>
+    <div class="ambient ambient-right"></div>
+    <main class="admin-page">
+      <section class="hero-panel">
+        <p class="eyebrow">Operations Console</p>
+        <h1>촬영 결과를 검토하고, 품질 이슈와 저장 정책을 한 번에 확인합니다.</h1>
+        <p class="lead">
+          제출된 신분증 이미지를 운영자가 검토하는 최소 관리자 흐름입니다. 품질 상태, 다운로드,
+          보안 정책, 공지사항을 같이 보여줍니다.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="/">촬영 화면으로 이동</a>
+          <a class="button button-secondary" href="{{ streamlit_url }}" target="_blank" rel="noreferrer">
+            실험용 Streamlit 데모
+          </a>
+        </div>
+      </section>
+
+      <section class="admin-dashboard">
+        <div id="admin-metrics" class="metric-grid large"></div>
+        <div class="feedback-layout admin-briefings">
+          <article class="feedback-card">
+            <p class="section-label">보안 정책</p>
+            <div id="admin-security" class="security-panel"></div>
+          </article>
+          <article class="feedback-card">
+            <p class="section-label">공지사항</p>
+            <div id="admin-notice" class="notice-panel"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="submission-board">
+        <div class="board-header">
+          <div>
+            <p class="section-label">Submission Queue</p>
+            <h2>최근 전송 목록</h2>
+          </div>
+          <button id="refresh-submissions" class="button button-secondary">새로고침</button>
+        </div>
+        <div id="submission-list" class="submission-list"></div>
+      </section>
+    </main>
+
+    <script src="/static/admin.js" defer></script>
+  </body>
+</html>

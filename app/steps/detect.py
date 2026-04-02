@@ -37,7 +37,11 @@ def order_points(pts: np.ndarray) -> np.ndarray:
     return rect
 
 
-def crop_and_warp(image: np.ndarray, contour: np.ndarray) -> np.ndarray:
+def crop_and_warp(
+    image: np.ndarray,
+    contour: np.ndarray,
+    target_aspect_ratio: float | None = None,
+) -> np.ndarray:
     """Apply a perspective transform based on a 4-point contour."""
     rect = order_points(contour.astype(np.float32))
     top_left, top_right, bottom_right, bottom_left = rect
@@ -49,6 +53,13 @@ def crop_and_warp(image: np.ndarray, contour: np.ndarray) -> np.ndarray:
     height_left = np.linalg.norm(bottom_left - top_left)
     height_right = np.linalg.norm(bottom_right - top_right)
     max_height = max(int(round((height_left + height_right) / 2.0)), 1)
+
+    if target_aspect_ratio:
+        measured_ratio = max_width / max(max_height, 1)
+        if measured_ratio >= target_aspect_ratio:
+            max_height = max(int(round(max_width / target_aspect_ratio)), 1)
+        else:
+            max_width = max(int(round(max_height * target_aspect_ratio)), 1)
 
     destination = np.array(
         [
@@ -64,11 +75,14 @@ def crop_and_warp(image: np.ndarray, contour: np.ndarray) -> np.ndarray:
     return cv2.warpPerspective(image, matrix, (max_width, max_height))
 
 
-def process_detect(image: np.ndarray) -> tuple[np.ndarray, bool]:
+def process_detect(
+    image: np.ndarray,
+    target_aspect_ratio: float | None = None,
+) -> tuple[np.ndarray, bool]:
     """Detect and crop the ID-card region, or fall back to the original image."""
     contour = find_id_card_contour(image)
     if contour is None:
         return image, False
 
-    cropped = crop_and_warp(image, contour)
+    cropped = crop_and_warp(image, contour, target_aspect_ratio=target_aspect_ratio)
     return cropped, True
