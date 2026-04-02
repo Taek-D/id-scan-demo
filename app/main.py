@@ -18,6 +18,7 @@ from app.schemas import (
     DocumentTypeOption,
     NoticeResponse,
     ProcessResponse,
+    QASampleResult,
     QualityReport,
     SecurityPolicy,
     SubmissionDetail,
@@ -29,6 +30,69 @@ MAX_UPLOAD_SIZE = 10 * 1024 * 1024
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png"}
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
+SAMPLES_DIR = BASE_DIR.parent / "samples"
+QA_SAMPLE_SET = (
+    {
+        "filename": "resident_mock_clean.png",
+        "document_type": "resident_id",
+        "expected_status": "ready",
+        "group_label": "정상 샘플",
+    },
+    {
+        "filename": "resident_mock_glare.png",
+        "document_type": "resident_id",
+        "expected_status": "review_recommended",
+        "group_label": "경계 샘플",
+    },
+    {
+        "filename": "resident_mock_shadow.png",
+        "document_type": "resident_id",
+        "expected_status": "ready",
+        "group_label": "정상 샘플",
+    },
+    {
+        "filename": "passport_mock_clean.png",
+        "document_type": "passport",
+        "expected_status": "ready",
+        "group_label": "정상 샘플",
+    },
+    {
+        "filename": "passport_mock_glare.png",
+        "document_type": "passport",
+        "expected_status": "review_recommended",
+        "group_label": "경계 샘플",
+    },
+    {
+        "filename": "passport_mock_motion.png",
+        "document_type": "passport",
+        "expected_status": "retry_required",
+        "group_label": "실패 샘플",
+    },
+    {
+        "filename": "failure_blur.png",
+        "document_type": "resident_id",
+        "expected_status": "retry_required",
+        "group_label": "실패 샘플",
+    },
+    {
+        "filename": "failure_frame_cut.png",
+        "document_type": "passport",
+        "expected_status": "retry_required",
+        "group_label": "실패 샘플",
+    },
+    {
+        "filename": "failure_glare_heavy.png",
+        "document_type": "resident_id",
+        "expected_status": "retry_required",
+        "group_label": "실패 샘플",
+    },
+    {
+        "filename": "failure_tilted.png",
+        "document_type": "resident_id",
+        "expected_status": "review_recommended",
+        "group_label": "경계 샘플",
+    },
+)
 
 
 def _to_base64(image_bytes: bytes) -> str:
@@ -41,6 +105,31 @@ def _security_policy() -> SecurityPolicy:
         at_rest_encryption="AES-256 encrypted object storage policy",
         retention_policy="30-day demo retention with scheduled purge assumption",
         access_scope="Admin-only access to stored images and download actions",
+    )
+
+
+def _build_qa_sample(sample: dict[str, str]) -> QASampleResult:
+    image_path = SAMPLES_DIR / sample["filename"]
+    image_bytes = image_path.read_bytes()
+    result = run_pipeline(
+        image_bytes,
+        glare_threshold=245,
+        document_type=sample["document_type"],
+    )
+    quality = assess_capture_quality(result.original, result.glare_mask, result.card_contour)
+    quality_payload = quality.to_payload()
+
+    return QASampleResult(
+        filename=sample["filename"],
+        document_type=sample["document_type"],
+        group_label=sample["group_label"],
+        expected_status=sample["expected_status"],
+        card_detected=result.card_detected,
+        original_b64=_to_base64(ndarray_to_jpeg_bytes(result.original)),
+        after_glare_b64=_to_base64(ndarray_to_jpeg_bytes(result.after_glare)),
+        after_detect_b64=_to_base64(ndarray_to_jpeg_bytes(result.after_detect)),
+        final_b64=_to_base64(ndarray_to_jpeg_bytes(result.after_enhance)),
+        quality=QualityReport(**quality_payload),
     )
 
 
@@ -157,6 +246,16 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
             },
         )
 
+    @app.get("/qa", response_class=HTMLResponse)
+    async def qa_page(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(
+            request=request,
+            name="qa.html",
+            context={
+                "streamlit_url": app.state.streamlit_url,
+            },
+        )
+
     @app.get("/api/health")
     async def healthcheck() -> dict[str, str]:
         return {"status": "ok"}
@@ -176,6 +275,10 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     @app.get("/api/submissions", response_model=list[SubmissionSummary])
     async def submissions() -> list[SubmissionSummary]:
         return [SubmissionSummary(**record) for record in app.state.submission_store.list_submissions()]
+
+    @app.get("/api/qa/samples", response_model=list[QASampleResult])
+    async def qa_samples() -> list[QASampleResult]:
+        return [_build_qa_sample(sample) for sample in QA_SAMPLE_SET]
 
     @app.get("/api/submissions/{submission_id}", response_model=SubmissionDetail)
     async def submission_detail(submission_id: str) -> SubmissionDetail:

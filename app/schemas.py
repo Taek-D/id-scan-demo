@@ -73,3 +73,16 @@ class ProcessResponse(BaseModel):
     final_b64: str
     quality: QualityReport
     security: SecurityPolicy
+
+
+class QASampleResult(BaseModel):
+    filename: str
+    document_type: str
+    group_label: str
+    expected_status: str
+    card_detected: bool
+    original_b64: str
+    after_glare_b64: str
+    after_detect_b64: str
+    final_b64: str
+    quality: QualityReport

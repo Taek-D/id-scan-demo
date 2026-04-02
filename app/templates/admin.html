@@ -17,6 +17,7 @@
         </div>
         <nav class="topbar-actions" aria-label="주요 이동">
           <a class="button button-secondary button-quiet" href="/">촬영 화면</a>
+          <a class="button button-secondary button-quiet" href="/qa">QA 갤러리</a>
           <a class="button button-secondary button-quiet" href="{{ streamlit_url }}" target="_blank" rel="noreferrer">
             Streamlit
           </a>
@@ -25,11 +26,13 @@
     </header>
     <main class="admin-page">
       <section class="hero-panel hero-panel-compact">
-        <p class="section-label">운영 보드</p>
-        <h1>제출 상태와 품질 이슈를 빠르게 검토합니다</h1>
-        <p class="lead">
-          접수 상태와 다운로드 경로를 한 흐름으로 확인할 수 있도록 운영 보드를 정리했습니다.
-        </p>
+        <div>
+          <p class="section-label">운영 보드</p>
+          <h1>제출 상태와 품질 이슈를 빠르게 검토합니다</h1>
+          <p class="lead">
+            상태와 문서 종류 기준으로 목록을 좁혀 보고, 다운로드와 품질 코드를 바로 확인할 수 있는 관리자 화면입니다.
+          </p>
+        </div>
       </section>
 
       <section class="admin-dashboard">
@@ -54,6 +57,28 @@
           </div>
           <button id="refresh-submissions" class="button button-secondary">새로고침</button>
         </div>
+
+        <div class="filter-bar" aria-label="제출 필터">
+          <label class="field filter-field">
+            <span>상태</span>
+            <select id="status-filter">
+              <option value="all">전체</option>
+              <option value="ready">제출 가능</option>
+              <option value="review_recommended">주의 필요</option>
+              <option value="retry_required">재촬영 필요</option>
+            </select>
+          </label>
+          <label class="field filter-field">
+            <span>문서 종류</span>
+            <select id="document-filter">
+              <option value="all">전체</option>
+              <option value="resident_id">주민등록증</option>
+              <option value="alien_registration">외국인등록증</option>
+              <option value="passport">여권</option>
+            </select>
+          </label>
+        </div>
+
         <div id="submission-list" class="submission-list"></div>
       </section>
     </main>
