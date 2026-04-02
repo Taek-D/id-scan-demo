@@ -125,6 +125,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
             STATIC_DIR / "manifest.webmanifest",
             media_type="application/manifest+json",
             filename="manifest.webmanifest",
+            headers={"Cache-Control": "no-cache"},
         )
 
     @app.get("/sw.js")

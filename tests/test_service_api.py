@@ -39,7 +39,9 @@ def test_service_pages_and_process_flow(tmp_path, synthetic_id_card) -> None:
     assert 'rel="manifest"' in capture_page.text
     assert manifest.status_code == 200
     assert manifest.headers["content-type"].startswith("application/manifest+json")
+    assert manifest.headers["cache-control"] == "no-cache"
     assert service_worker.status_code == 200
+    assert service_worker.headers["cache-control"] == "no-cache"
     assert "CACHE_NAME" in service_worker.text
     assert document_types.status_code == 200
     assert payload["document_type"] == "resident_id"

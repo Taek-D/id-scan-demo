@@ -1,4 +1,4 @@
-const CACHE_NAME = "id-scan-demo-shell-v1";
+const CACHE_NAME = "id-scan-demo-shell-v2";
 const STATIC_ASSETS = [
   "/",
   "/admin",
@@ -8,6 +8,47 @@ const STATIC_ASSETS = [
   "/static/admin.js",
   "/static/icon.svg",
 ];
+
+function shouldHandle(request, url) {
+  if (request.method !== "GET" || url.origin !== self.location.origin) {
+    return false;
+  }
+
+  if (url.pathname.startsWith("/api/") || url.pathname === "/sw.js") {
+    return false;
+  }
+
+  return true;
+}
+
+async function updateCache(request, response) {
+  if (!response.ok) {
+    return response;
+  }
+
+  const cache = await caches.open(CACHE_NAME);
+  await cache.put(request, response.clone());
+  return response;
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  const networkPromise = fetch(request)
+    .then((response) => updateCache(request, response))
+    .catch(() => null);
+
+  if (cached) {
+    return cached;
+  }
+
+  const networkResponse = await networkPromise;
+  if (networkResponse) {
+    return networkResponse;
+  }
+
+  return caches.match("/");
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)));
@@ -27,32 +68,18 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) {
+  if (!shouldHandle(request, url)) {
     return;
   }
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
+      fetch(request)
+        .then((response) => updateCache(request, response))
+        .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
     );
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) {
-        return cached;
-      }
-
-      return fetch(request).then((response) => {
-        if (!response.ok) {
-          return response;
-        }
-
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-        return response;
-      });
-    })
-  );
+  event.respondWith(staleWhileRevalidate(request));
 });

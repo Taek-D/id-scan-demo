@@ -813,12 +813,40 @@ select {
 
   .capture-page,
   .admin-page {
-    padding-bottom: 32px;
+    padding-bottom: 28px;
   }
 
   h1 {
-    max-width: 12ch;
-    font-size: clamp(2rem, 10vw, 3.1rem);
+    max-width: 9ch;
+    font-size: clamp(1.78rem, 8.6vw, 2.7rem);
+    line-height: 1.04;
+  }
+
+  .hero-panel {
+    gap: 18px;
+    padding: 20px 2px 18px;
+  }
+
+  .lead {
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .pwa-hint {
+    font-size: 0.84rem;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions .button {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+  }
+
+  .hero-actions .button-tertiary {
+    flex-basis: 100%;
   }
 
   .controls-grid,
@@ -831,6 +859,42 @@ select {
 
   .preview-frame {
     aspect-ratio: 4 / 5;
+  }
+
+  .capture-card,
+  .decision-banner,
+  .submission-board {
+    padding: 18px;
+  }
+
+  .briefing-section,
+  .feedback-card,
+  .status-card,
+  .metric-card,
+  .submission-item {
+    border-radius: 18px;
+  }
+
+  .metric-grid.large {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-card {
+    padding: 12px 14px;
+  }
+
+  .metric-card strong {
+    margin-top: 6px;
+    font-size: 1.04rem;
+  }
+
+  .submission-metrics {
+    gap: 8px;
+  }
+
+  .submission-metrics .metric-pill {
+    font-size: 0.78rem;
+    padding: 0.5rem 0.68rem;
   }
 
   .sticky-mobile {
