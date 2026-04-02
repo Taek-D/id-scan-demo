@@ -85,7 +85,7 @@
 
 - `file`: `image/jpeg` or `image/png`
 - `document_type`: `resident_id` | `alien_registration` | `passport`
-- query `glare_threshold`: `100..254`, default `200`
+- query `glare_threshold`: `100..254`, default `245`
 
 응답에는 아래가 포함됩니다.
 
@@ -94,7 +94,7 @@
 - 원본, 글레어 제거, 크롭, 최종 보정 이미지의 base64 데이터
 - 보안/보관 정책 문구
 
-기존 실험용 호환 엔드포인트로 `POST /process`도 유지합니다.
+기본 웹 UI에서는 이 값을 노출하지 않고 자동 기본값 `245`를 사용합니다. 기존 실험용 호환 엔드포인트로 `POST /process`도 유지합니다.
 
 ## 로컬 실행
 

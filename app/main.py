@@ -207,7 +207,7 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
     @app.post("/api/process", response_model=ProcessResponse)
     async def process_image(
         file: UploadFile = File(...),
-        glare_threshold: int = Query(default=200, ge=100, le=254),
+        glare_threshold: int = Query(default=245, ge=100, le=254),
         document_type: str = Form(default="resident_id"),
     ) -> ProcessResponse:
         if file.content_type not in ALLOWED_CONTENT_TYPES:

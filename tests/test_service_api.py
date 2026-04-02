@@ -21,7 +21,7 @@ def test_service_pages_and_process_flow(tmp_path, synthetic_id_card) -> None:
     assert success
 
     process_response = client.post(
-        "/api/process?glare_threshold=245",
+        "/api/process",
         data={"document_type": "resident_id"},
         files={"file": ("synthetic.png", encoded.tobytes(), "image/png")},
     )
@@ -68,3 +68,21 @@ def test_service_process_keeps_safe_original_when_glare_removal_is_uncertain(tmp
     assert response.status_code == 200
     payload = response.json()
     assert payload["after_glare_b64"] == payload["original_b64"]
+
+
+def test_service_process_accepts_glare_threshold_override(tmp_path, synthetic_id_card) -> None:
+    app = create_app(tmp_path / "service-data")
+    client = TestClient(app)
+
+    success, encoded = cv2.imencode(".png", synthetic_id_card)
+    assert success
+
+    response = client.post(
+        "/api/process?glare_threshold=200",
+        data={"document_type": "resident_id"},
+        files={"file": ("synthetic.png", encoded.tobytes(), "image/png")},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert "quality" in payload

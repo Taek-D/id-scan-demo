@@ -27,7 +27,7 @@ def get_glare_application_decision(mask: np.ndarray) -> tuple[bool, str | None]:
     return True, None
 
 
-def detect_glare_mask(image: np.ndarray, threshold: int = 200) -> np.ndarray:
+def detect_glare_mask(image: np.ndarray, threshold: int = 245) -> np.ndarray:
     """Create a conservative single-channel glare mask for specular highlights."""
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     saturation_channel = hsv[:, :, 1]
@@ -68,7 +68,7 @@ def remove_glare(image: np.ndarray, mask: np.ndarray, inpaint_radius: int = 3) -
     return cv2.inpaint(image, mask, inpaint_radius, cv2.INPAINT_TELEA)
 
 
-def process_glare(image: np.ndarray, threshold: int = 200) -> tuple[np.ndarray, np.ndarray]:
+def process_glare(image: np.ndarray, threshold: int = 245) -> tuple[np.ndarray, np.ndarray]:
     """Run the glare detection and removal pipeline."""
     mask = detect_glare_mask(image, threshold)
     result = remove_glare(image, mask)

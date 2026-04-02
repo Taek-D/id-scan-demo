@@ -59,11 +59,10 @@
               <span>신분증 종류</span>
               <select id="document-type"></select>
             </label>
-            <label class="field">
-              <span>글레어 감지 강도</span>
-              <input id="glare-threshold" type="range" min="100" max="254" value="200" />
-              <small id="glare-threshold-value">200</small>
-            </label>
+            <div class="field field-readonly">
+              <span>자동 보정 모드</span>
+              <small>원본 훼손을 줄이기 위한 보수적 글레어 감지 기본값을 사용합니다.</small>
+            </div>
           </div>
 
           <ol id="capture-steps" class="capture-steps" aria-label="촬영 단계 안내">

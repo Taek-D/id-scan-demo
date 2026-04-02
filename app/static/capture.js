@@ -59,8 +59,6 @@ function bindElements() {
   els.imageGlareLabel = document.getElementById("image-glare-label");
   els.imageDetect = document.getElementById("image-detect");
   els.imageFinal = document.getElementById("image-final");
-  els.glareThreshold = document.getElementById("glare-threshold");
-  els.glareThresholdValue = document.getElementById("glare-threshold-value");
   els.orientationHint = document.getElementById("orientation-hint");
   els.alignmentHint = document.getElementById("alignment-hint");
   els.statusSource = document.getElementById("status-source");
@@ -80,9 +78,6 @@ function bindEvents() {
   els.installButton.addEventListener("click", installPwa);
   els.fileInput.addEventListener("change", handleFileSelection);
   els.documentType.addEventListener("change", onDocumentTypeChange);
-  els.glareThreshold.addEventListener("input", () => {
-    els.glareThresholdValue.textContent = els.glareThreshold.value;
-  });
 }
 
 async function loadDocumentTypes() {
@@ -357,7 +352,7 @@ async function submitCapture(blob, filename) {
   els.statusSubmit.textContent = "서버에서 품질 판정과 보정 파이프라인을 실행하고 있습니다.";
 
   try {
-    const response = await fetch(`/api/process?glare_threshold=${encodeURIComponent(els.glareThreshold.value)}`, {
+    const response = await fetch("/api/process", {
       method: "POST",
       body: formData,
     });

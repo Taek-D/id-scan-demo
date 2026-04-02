@@ -29,7 +29,7 @@ class PipelineResult:
 
 def run_pipeline(
     image_bytes: bytes,
-    glare_threshold: int = 200,
+    glare_threshold: int = 245,
     document_type: str = "resident_id",
 ) -> PipelineResult:
     """Decode an image and run the full processing pipeline."""
