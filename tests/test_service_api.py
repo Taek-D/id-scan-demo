@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import cv2
+import numpy as np
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -48,3 +49,22 @@ def test_service_pages_and_process_flow(tmp_path, synthetic_id_card) -> None:
     assert submissions[0]["id"] == payload["submission_id"]
     assert download_response.status_code == 200
     assert download_response.headers["content-type"].startswith("image/jpeg")
+
+
+def test_service_process_keeps_safe_original_when_glare_removal_is_uncertain(tmp_path) -> None:
+    app = create_app(tmp_path / "service-data")
+    client = TestClient(app)
+
+    wide_bright = np.full((240, 360, 3), 245, dtype=np.uint8)
+    success, encoded = cv2.imencode(".png", wide_bright)
+    assert success
+
+    response = client.post(
+        "/api/process?glare_threshold=200",
+        data={"document_type": "resident_id"},
+        files={"file": ("bright.png", encoded.tobytes(), "image/png")},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["after_glare_b64"] == payload["original_b64"]

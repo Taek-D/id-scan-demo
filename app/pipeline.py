@@ -9,7 +9,9 @@ from app.document_types import get_document_type_config
 from app.steps.detect import find_id_card_contour
 from app.steps.detect import process_detect
 from app.steps.enhance import process_enhance
-from app.steps.glare import process_glare
+from app.steps.glare import detect_glare_mask
+from app.steps.glare import get_glare_application_decision
+from app.steps.glare import remove_glare
 
 
 @dataclass
@@ -19,6 +21,8 @@ class PipelineResult:
     after_detect: np.ndarray
     after_enhance: np.ndarray
     glare_mask: np.ndarray
+    glare_applied: bool
+    glare_skip_reason: str | None
     card_detected: bool
     card_contour: np.ndarray | None
 
@@ -35,7 +39,9 @@ def run_pipeline(
         raise ValueError("Unable to decode the uploaded image.")
 
     document_config = get_document_type_config(document_type)
-    after_glare, glare_mask = process_glare(original, threshold=glare_threshold)
+    glare_mask = detect_glare_mask(original, threshold=glare_threshold)
+    glare_applied, glare_skip_reason = get_glare_application_decision(glare_mask)
+    after_glare = remove_glare(original, glare_mask)
     card_contour = find_id_card_contour(after_glare)
     after_detect, card_detected = process_detect(
         after_glare,
@@ -49,6 +55,8 @@ def run_pipeline(
         after_detect=after_detect,
         after_enhance=after_enhance,
         glare_mask=glare_mask,
+        glare_applied=glare_applied,
+        glare_skip_reason=glare_skip_reason,
         card_detected=card_detected,
         card_contour=card_contour,
     )

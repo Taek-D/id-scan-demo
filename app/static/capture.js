@@ -56,6 +56,7 @@ function bindElements() {
   els.submissionMeta = document.getElementById("submission-meta");
   els.imageOriginal = document.getElementById("image-original");
   els.imageGlare = document.getElementById("image-glare");
+  els.imageGlareLabel = document.getElementById("image-glare-label");
   els.imageDetect = document.getElementById("image-detect");
   els.imageFinal = document.getElementById("image-final");
   els.glareThreshold = document.getElementById("glare-threshold");
@@ -411,11 +412,15 @@ function renderResult(payload) {
   els.imageGlare.src = `data:image/jpeg;base64,${payload.after_glare_b64}`;
   els.imageDetect.src = `data:image/jpeg;base64,${payload.after_detect_b64}`;
   els.imageFinal.src = `data:image/jpeg;base64,${payload.final_b64}`;
+  els.imageGlareLabel.textContent =
+    payload.after_glare_b64 === payload.original_b64 ? "원본 유지" : "빛반사 보정";
 
   els.resultNextAction.textContent =
     payload.quality.status === "retry_required"
       ? "현재 상태는 재촬영이 더 적합합니다. 가이드를 따라 다시 촬영한 뒤 관리자 콘솔에서 저장 이력을 확인하세요."
-      : "현재 제출 상태를 유지한 채 관리자 콘솔에서 저장된 원본과 보정본을 내려받을 수 있습니다.";
+      : payload.after_glare_b64 === payload.original_b64
+        ? "글레어 보정이 과하다고 판단되어 원본을 유지했습니다. 관리자 콘솔에서 원본과 최종 결과를 함께 확인할 수 있습니다."
+        : "현재 제출 상태를 유지한 채 관리자 콘솔에서 저장된 원본과 보정본을 내려받을 수 있습니다.";
 
   setCameraState(payload.quality.status_label, `chip ${chipClass(payload.quality.status)}`);
   els.statusSubmit.textContent =
