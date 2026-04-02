@@ -1,26 +1,67 @@
 from __future__ import annotations
 
+import math
+
 import cv2
 import numpy as np
 
 
-def find_id_card_contour(image: np.ndarray) -> np.ndarray | None:
-    """Find the first large quadrilateral contour that resembles an ID card."""
+def _iter_document_candidates(
+    image: np.ndarray,
+    target_aspect_ratio: float | None = None,
+) -> list[np.ndarray]:
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     edged = cv2.Canny(blurred, 50, 200)
 
     contours_info = cv2.findContours(edged, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
     contours = contours_info[0] if len(contours_info) == 2 else contours_info[1]
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:20]
 
+    image_height, image_width = image.shape[:2]
+    image_area = float(image_height * image_width)
+    image_center = np.array([image_width / 2.0, image_height / 2.0], dtype=np.float32)
+
+    scored_candidates: list[tuple[float, np.ndarray]] = []
     for contour in contours:
         perimeter = cv2.arcLength(contour, True)
         approximation = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
-        if len(approximation) == 4:
-            return approximation.reshape(4, 2).astype(np.float32)
+        if len(approximation) != 4:
+            continue
 
-    return None
+        quad = approximation.reshape(4, 2).astype(np.float32)
+        area = float(cv2.contourArea(quad))
+        area_ratio = area / image_area
+        if area_ratio < 0.12 or area_ratio > 0.9:
+            continue
+
+        x, y, width, height = cv2.boundingRect(quad.astype(np.int32))
+        candidate_aspect_ratio = width / max(height, 1)
+
+        aspect_error = 0.0
+        if target_aspect_ratio:
+            aspect_error = abs(math.log(candidate_aspect_ratio / target_aspect_ratio))
+            if aspect_error > 0.35:
+                continue
+
+        contour_center = quad.mean(axis=0)
+        center_distance = float(np.linalg.norm(contour_center - image_center))
+        normalized_center_distance = center_distance / max(np.linalg.norm(image_center), 1.0)
+
+        score = aspect_error + (normalized_center_distance * 0.18) - (area_ratio * 1.25)
+        scored_candidates.append((score, quad))
+
+    scored_candidates.sort(key=lambda item: item[0])
+    return [candidate for _, candidate in scored_candidates]
+
+
+def find_id_card_contour(
+    image: np.ndarray,
+    target_aspect_ratio: float | None = None,
+) -> np.ndarray | None:
+    """Find the best large quadrilateral contour that resembles an ID card."""
+    candidates = _iter_document_candidates(image, target_aspect_ratio=target_aspect_ratio)
+    return candidates[0] if candidates else None
 
 
 def order_points(pts: np.ndarray) -> np.ndarray:
@@ -80,7 +121,7 @@ def process_detect(
     target_aspect_ratio: float | None = None,
 ) -> tuple[np.ndarray, bool]:
     """Detect and crop the ID-card region, or fall back to the original image."""
-    contour = find_id_card_contour(image)
+    contour = find_id_card_contour(image, target_aspect_ratio=target_aspect_ratio)
     if contour is None:
         return image, False
 

@@ -1,8 +1,18 @@
 from __future__ import annotations
 
+from pathlib import Path
+
+import cv2
 import numpy as np
 
 from app.steps.detect import crop_and_warp, find_id_card_contour, order_points, process_detect
+
+
+def _load_sample_image(name: str) -> np.ndarray:
+    path = Path(__file__).resolve().parents[1] / "samples" / name
+    image = cv2.imdecode(np.frombuffer(path.read_bytes(), dtype=np.uint8), cv2.IMREAD_COLOR)
+    assert image is not None
+    return image
 
 
 def test_find_id_card_contour_on_synthetic_image(synthetic_id_card: np.ndarray) -> None:
@@ -37,3 +47,23 @@ def test_crop_and_warp_returns_non_empty_image(synthetic_id_card: np.ndarray) ->
 
     assert warped.shape[0] > 0
     assert warped.shape[1] > 0
+
+
+def test_find_id_card_contour_prefers_full_document_on_resident_mock() -> None:
+    image = _load_sample_image("resident_mock_clean.png")
+
+    contour = find_id_card_contour(image, target_aspect_ratio=85.6 / 54.0)
+
+    assert contour is not None
+    area_ratio = cv2.contourArea(contour.astype(np.float32)) / (image.shape[0] * image.shape[1])
+    assert area_ratio > 0.25
+
+
+def test_find_id_card_contour_detects_passport_mock() -> None:
+    image = _load_sample_image("passport_mock_clean.png")
+
+    contour = find_id_card_contour(image, target_aspect_ratio=125.0 / 88.0)
+
+    assert contour is not None
+    area_ratio = cv2.contourArea(contour.astype(np.float32)) / (image.shape[0] * image.shape[1])
+    assert area_ratio > 0.3

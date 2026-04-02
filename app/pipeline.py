@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 
 from app.document_types import get_document_type_config
+from app.steps.detect import crop_and_warp
 from app.steps.detect import find_id_card_contour
 from app.steps.detect import process_detect
 from app.steps.enhance import process_enhance
@@ -39,14 +40,39 @@ def run_pipeline(
         raise ValueError("Unable to decode the uploaded image.")
 
     document_config = get_document_type_config(document_type)
+    card_contour = find_id_card_contour(
+        original,
+        target_aspect_ratio=document_config.aspect_ratio,
+    )
     glare_mask = detect_glare_mask(original, threshold=glare_threshold)
     glare_applied, glare_skip_reason = get_glare_application_decision(glare_mask)
     after_glare = remove_glare(original, glare_mask)
-    card_contour = find_id_card_contour(after_glare)
-    after_detect, card_detected = process_detect(
-        after_glare,
-        target_aspect_ratio=document_config.aspect_ratio,
-    )
+
+    if card_contour is not None:
+        after_detect = crop_and_warp(
+            after_glare,
+            card_contour,
+            target_aspect_ratio=document_config.aspect_ratio,
+        )
+        card_detected = True
+    else:
+        card_contour = find_id_card_contour(
+            after_glare,
+            target_aspect_ratio=document_config.aspect_ratio,
+        )
+        if card_contour is None:
+            after_detect, card_detected = process_detect(
+                after_glare,
+                target_aspect_ratio=document_config.aspect_ratio,
+            )
+        else:
+            after_detect = crop_and_warp(
+                after_glare,
+                card_contour,
+                target_aspect_ratio=document_config.aspect_ratio,
+            )
+            card_detected = True
+
     after_enhance = process_enhance(after_detect)
 
     return PipelineResult(

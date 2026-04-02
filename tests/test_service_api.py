@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import cv2
 import numpy as np
 from fastapi.testclient import TestClient
@@ -88,3 +90,59 @@ def test_service_process_accepts_glare_threshold_override(tmp_path, synthetic_id
     assert response.status_code == 200
     payload = response.json()
     assert "quality" in payload
+
+
+def test_service_process_detects_passport_mock_and_marks_ready(tmp_path) -> None:
+    app = create_app(tmp_path / "service-data")
+    client = TestClient(app)
+
+    sample_path = Path(__file__).resolve().parents[1] / "samples" / "passport_mock_clean.png"
+    with sample_path.open("rb") as sample_file:
+        response = client.post(
+            "/api/process",
+            data={"document_type": "passport"},
+            files={"file": (sample_path.name, sample_file.read(), "image/png")},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["card_detected"] is True
+    assert payload["quality"]["status"] == "ready"
+
+
+def test_service_process_marks_frame_cut_sample_for_retry(tmp_path) -> None:
+    app = create_app(tmp_path / "service-data")
+    client = TestClient(app)
+
+    sample_path = Path(__file__).resolve().parents[1] / "samples" / "failure_frame_cut.png"
+    with sample_path.open("rb") as sample_file:
+        response = client.post(
+            "/api/process",
+            data={"document_type": "passport"},
+            files={"file": (sample_path.name, sample_file.read(), "image/png")},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["card_detected"] is True
+    assert payload["quality"]["status"] == "retry_required"
+    assert "FRAME_CLIPPED" in payload["quality"]["admin_codes"]
+
+
+def test_service_process_marks_heavy_glare_sample_for_retry(tmp_path) -> None:
+    app = create_app(tmp_path / "service-data")
+    client = TestClient(app)
+
+    sample_path = Path(__file__).resolve().parents[1] / "samples" / "failure_glare_heavy.png"
+    with sample_path.open("rb") as sample_file:
+        response = client.post(
+            "/api/process",
+            data={"document_type": "resident_id"},
+            files={"file": (sample_path.name, sample_file.read(), "image/png")},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["card_detected"] is True
+    assert payload["quality"]["status"] == "retry_required"
+    assert "HIGH_GLARE_RETRY" in payload["quality"]["admin_codes"]
