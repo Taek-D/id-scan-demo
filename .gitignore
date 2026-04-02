@@ -7,4 +7,5 @@ __pycache__/
 *.pyd
 *.log
 data/
+data_test_*/
 .server.pid
