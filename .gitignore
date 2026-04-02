@@ -9,3 +9,4 @@ __pycache__/
 data/
 data_test_*/
 .server.pid
+test-results/
